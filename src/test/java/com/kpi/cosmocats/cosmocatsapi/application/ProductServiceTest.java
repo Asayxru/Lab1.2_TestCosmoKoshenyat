@@ -1,5 +1,6 @@
 package com.kpi.cosmocats.cosmocatsapi.application;
 
+import com.kpi.cosmocats.cosmocatsapi.infrastructure.client.CategoryClient;
 import com.kpi.cosmocats.cosmocatsapi.domain.model.Product;
 import com.kpi.cosmocats.cosmocatsapi.domain.repository.ProductRepository;
 import com.kpi.cosmocats.cosmocatsapi.dto.ProductCreateRequest;
@@ -14,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,16 +32,23 @@ class ProductServiceTest {
     @Mock
     private ProductMapper mapper;
 
+    @Mock
+    private CategoryClient categoryClient;
+
     @InjectMocks
     private ProductService service;
 
     @Test
     void create_generatesId_savesAndReturnsResponse() {
         ProductCreateRequest request = new ProductCreateRequest();
+        request.setName("smthng");
+        request.setPrice(BigDecimal.valueOf(10));
+        request.setCategoryId(UUID.randomUUID());
 
         Product product = new Product();
         ProductResponse response = new ProductResponse();
 
+        when(categoryClient.categoryExists(any())).thenReturn(true);
         when(mapper.toDomain(request)).thenReturn(product);
         when(repository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
         when(mapper.toResponse(any(Product.class))).thenReturn(response);
@@ -54,9 +63,10 @@ class ProductServiceTest {
         Product saved = captor.getValue();
         assertNotNull(saved.getId(), "ID має генеруватися в сервісі");
 
+        verify(categoryClient).categoryExists(any());
         verify(mapper).toDomain(request);
         verify(mapper).toResponse(product);
-        verifyNoMoreInteractions(repository, mapper);
+        verifyNoMoreInteractions(repository, mapper, categoryClient);
     }
 
     @Test
@@ -75,7 +85,7 @@ class ProductServiceTest {
         verify(repository).findAll();
         verify(mapper).toResponse(p1);
         verify(mapper).toResponse(p2);
-        verifyNoMoreInteractions(repository, mapper);
+        verifyNoMoreInteractions(repository, mapper, categoryClient);
     }
 
     @Test
@@ -93,7 +103,7 @@ class ProductServiceTest {
 
         verify(repository).findById(id);
         verify(mapper).toResponse(product);
-        verifyNoMoreInteractions(repository, mapper);
+        verifyNoMoreInteractions(repository, mapper, categoryClient);
     }
 
     @Test
@@ -105,7 +115,7 @@ class ProductServiceTest {
         assertThrows(NotFoundException.class, () -> service.getById(id));
 
         verify(repository).findById(id);
-        verifyNoMoreInteractions(repository, mapper);
+        verifyNoMoreInteractions(repository, mapper, categoryClient);
     }
 
     @Test
@@ -128,7 +138,7 @@ class ProductServiceTest {
         verify(mapper).update(request, product);
         verify(repository).save(product);
         verify(mapper).toResponse(saved);
-        verifyNoMoreInteractions(repository, mapper);
+        verifyNoMoreInteractions(repository, mapper, categoryClient);
     }
 
     @Test
@@ -141,7 +151,7 @@ class ProductServiceTest {
         assertThrows(NotFoundException.class, () -> service.update(id, request));
 
         verify(repository).findById(id);
-        verifyNoMoreInteractions(repository, mapper);
+        verifyNoMoreInteractions(repository, mapper, categoryClient);
     }
 
     @Test
@@ -154,7 +164,7 @@ class ProductServiceTest {
 
         verify(repository).existsById(id);
         verify(repository).deleteById(id);
-        verifyNoMoreInteractions(repository, mapper);
+        verifyNoMoreInteractions(repository, mapper, categoryClient);
     }
 
     @Test
@@ -166,6 +176,6 @@ class ProductServiceTest {
         assertThrows(NotFoundException.class, () -> service.delete(id));
 
         verify(repository).existsById(id);
-        verifyNoMoreInteractions(repository, mapper);
+        verifyNoMoreInteractions(repository, mapper, categoryClient);
     }
 }
