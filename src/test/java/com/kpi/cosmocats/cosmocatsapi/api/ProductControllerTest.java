@@ -35,12 +35,11 @@ class ProductControllerTest {
 
     @Test
     void create_whenValidRequest_returns200() throws Exception {
-        // given — ПОВНІСТЮ ВАЛІДНИЙ DTO
         ProductCreateRequest request = new ProductCreateRequest();
-        request.setName("star milk");                 // проходить CosmicWordCheck
+        request.setName("star milk");
         request.setDescription("desc");
         request.setPrice(BigDecimal.valueOf(10));
-        request.setCategoryId(UUID.randomUUID());     // ОБОВʼЯЗКОВЕ ПОЛЕ
+        request.setCategoryId(UUID.randomUUID());
 
         ProductResponse response = new ProductResponse();
         UUID id = UUID.randomUUID();
@@ -53,7 +52,6 @@ class ProductControllerTest {
         Mockito.when(service.create(any(ProductCreateRequest.class)))
                 .thenReturn(response);
 
-        // when + then
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -69,14 +67,12 @@ class ProductControllerTest {
 
     @Test
     void create_whenInvalidRequest_returns400() throws Exception {
-        // given — НЕВАЛІДНИЙ DTO (не проходить CosmicWordCheck)
         ProductCreateRequest request = new ProductCreateRequest();
-        request.setName("abc");
+        request.setName("name");
         request.setDescription("desc");
         request.setPrice(BigDecimal.valueOf(10));
         request.setCategoryId(UUID.randomUUID());
 
-        // when + then
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

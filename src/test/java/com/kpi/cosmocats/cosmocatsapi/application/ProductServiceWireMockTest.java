@@ -42,7 +42,7 @@ class ProductServiceWireMockTest {
                 new ProductService(repository, mapper, categoryClient);
 
         ProductCreateRequest request = new ProductCreateRequest();
-        request.setName("star milk");
+        request.setName("smthng");
         request.setPrice(BigDecimal.valueOf(10));
         request.setCategoryId(categoryId);
 
